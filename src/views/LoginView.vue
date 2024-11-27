@@ -67,7 +67,10 @@ export default {
         if (response.data.admin === true)
           this.$router.push('/inicio');
         else
-          this.$router.push('/formulario');
+          if (this.$user.reception === null)
+            this.$router.push('/inicio-recepcion');
+          else
+            this.$router.push('/formulario');
       })
       .catch(error => {
         console.log(error);
@@ -91,12 +94,15 @@ export default {
         .then(response => {
           if (response.status !== 200)
             return
-          localStorage.setItem('token',response.data.token);
+          localStorage.setItem('token', response.data.token);
           methods.updateProperties(this.$user, response.data.user);
           if (this.$user.admin === true) {
             this.$router.push('/inicio');
-          } else{
-            this.$router.push('/inicio-recepcion');
+          } else {
+            if (this.$user.reception === null)
+              this.$router.push('/inicio-recepcion');
+            else
+              this.$router.push('/formulario');
           }
         })
         .catch(error => {
