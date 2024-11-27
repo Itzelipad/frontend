@@ -1,7 +1,7 @@
 <template>
   <div class="flex justify-center">
     <!-- Barra lateral (sidebar) -->
-    <aside id="logo-sidebar" class="hidden md:block w-64 text-white h-screen" aria-label="Sidebar" ></aside>
+    <aside id="logo-sidebar" class="hidden md:block w-64 text-white h-screen" aria-label="Sidebar"></aside>
 
     <!-- Contenido principal de la página -->
     <div class="p-4 flex-1">
@@ -17,16 +17,16 @@
           <p class="text-[#163891] text-lg mb-8"> Modifica los datos de tu cuenta de {{ userRole }}.</p>
 
           <label class="text-[#163891] font-semibold mb-6 block text-lg">Nombre:</label>
-          <input type="text" class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none"/>
+          <input type="text" v-model="name"
+            class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none" />
 
           <!-- Botones de "Guardar" y "Editar contraseña" -->
           <div class="flex justify-between gap-4">
             <button class="bg-[#EBF0FD] hover:bg-blue-100 text-[#163891] font-semibold py-2 px-4 rounded-lg w-1/2"
-              @click="editPassword"
-            >
+              @click="editPassword">
               Editar contraseña
             </button>
-            <button class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-1/2">
+            <button @click="updateUser" class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-1/2">
               Guardar
             </button>
           </div>
@@ -37,12 +37,15 @@
 </template>
 
 <script>
+import axios from 'axios';
+import methods from '@/methods';
 export default {
   data() {
     return {
       showPassword: false, // Estado para controlar la visibilidad de la contraseña
-      userRoles: ["administrador", "recepción"], 
+      userRoles: ["administrador", "recepción"],
       currentRoleIndex: 0, // index para seleccionar el rol actual
+      name: null
     };
   },
   computed: {
@@ -54,14 +57,37 @@ export default {
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword; // Alterna el estado de visibilidad
     },
-    switchRole() {
-      this.currentRoleIndex =
-        (this.currentRoleIndex + 1) % this.userRoles.length; // Cambia el rol actual
-    },
     editPassword() {
       this.$router.push("/editar-contrasena");
     },
+    updateUser() {
+      let token = localStorage.getItem('token');
+      axios
+        .patch(`${this.$apiRoute}/actualizar-usuario/${this.$auxiliar.id}`,
+          {
+            name: this.name,
+            admin: this.$user.admin,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+        .then(response => {
+          alert(response.data.message);
+          methods.deleteAuxProperties(this.$auxiliar);
+          this.$router.go(-1);
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    }
   },
+  mounted() {
+    if (!this.$auxiliar.admin)
+      this.currentRoleIndex = 1;
+    this.name = this.$auxiliar.name;
+  }
 };
 </script>
 

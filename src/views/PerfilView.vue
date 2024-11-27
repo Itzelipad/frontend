@@ -16,7 +16,7 @@
           <p class="text-[#A3AED0] text-center text-lg mb:text-1sm mt-1 mb-3"> {{ userRole }}</p>
 
           <!-- Boton editar perfil -->
-          <button @click="$router.push('/editar-perfil')"
+          <button @click="editarPerfil"
             class="bg-[#EBF0FD] text-[#163891] font-semibold mt-4 px-2 py-1 w-1/3 rounded-lg hover:bg-blue-100 mx-auto block">
             Editar
           </button>
@@ -168,6 +168,12 @@ export default {
       this.$auxiliar.admin = usuario.admin;
       this.$auxiliar.id = usuario.id;
       this.$router.push('/editar-usuario')
+    },
+    editarPerfil(){
+      this.$auxiliar.name = this.$user.name;
+      this.$auxiliar.admin = this.$user.admin;
+      this.$auxiliar.id = this.$user.id;
+      this.$router.push('/editar-perfil')
     }
   },
   mounted() {

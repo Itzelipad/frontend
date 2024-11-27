@@ -16,7 +16,7 @@
 
           <!-- Campo de nombre -->
           <label class="text-[#163891] font-semibold mb-6 block text-lg">Nombre:</label>
-          <input type="text" class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none"/>
+          <input type="text" v-model="name" class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none"/>
 
           <!-- Campo de tipo de usuario -->
           <div class="mb-6">
@@ -60,7 +60,9 @@
             >
               Editar contraseña
             </button>
-            <button class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-1/2">
+            <button class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-1/2"
+              @click="guardarCambios"
+            >
               Guardar
             </button>
           </div>
@@ -71,10 +73,13 @@
 </template>
 
 <script>
+import axios from 'axios';
+import methods from '@/methods';
 export default {
   data() {
     return {
       showPassword: false,
+      name:null,
       userRoles: ["Administrador", "Recepcionista"], // Arreglo con los tipos de usuario
       form: {
         tipoUsuario: "", // Valor seleccionado para tipo de usuario
@@ -96,7 +101,39 @@ export default {
     editPassword() {
       this.$router.push("/editar-contrasena");
     },
+    guardarCambios(){
+      let token = localStorage.getItem('token');
+      let admin = false;
+      if(this.form.tipoUsuario === "Administrador")
+        admin = true;
+      axios
+        .patch(`${this.$apiRoute}/actualizar-usuario/${this.$auxiliar.id}`,
+        {
+          name: this.name,
+          admin: admin
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          alert(response.data.message);
+          methods.deleteAuxProperties(this.$auxiliar);
+          this.$router.go(-1);
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    }
   },
+  mounted(){
+    this.name = this.$auxiliar.name;
+    if(this.$auxiliar.admin)
+      this.form.tipoUsuario = "Administrador";
+    else
+      this.form.tipoUsuario = "Recepcionista";
+  }
 };
 </script>
 

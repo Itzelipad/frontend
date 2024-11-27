@@ -1,7 +1,7 @@
 <template>
   <div class="flex justify-center">
     <!-- Barra lateral (sidebar) -->
-    <aside id="logo-sidebar" class="hidden md:block w-64 text-white h-screen"  aria-label="Sidebar"></aside>
+    <aside id="logo-sidebar" class="hidden md:block w-64 text-white h-screen" aria-label="Sidebar"></aside>
 
     <!-- Contenido principal de la página -->
     <div class="p-4 flex-1">
@@ -24,7 +24,8 @@
           <p class="text-[#163891] text-base text-center mb-4">¿Estás seguro de que deseas salir de esta recepción?</p>
 
           <div class="flex justify-center">
-            <button @click="cerrarSesion" class="bg-[#2B3674] text-white font-semibold justify-center px-6 py-2 rounded-lg w-32"> Aceptar</button>
+            <button @click="cerrarSesion"
+              class="bg-[#2B3674] text-white font-semibold justify-center px-6 py-2 rounded-lg w-32"> Aceptar</button>
           </div>
         </div>
       </div>
@@ -33,6 +34,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import methods from '@/methods';
+
 export default {
   data() {
     return {
@@ -47,9 +51,28 @@ export default {
   },
   methods: {
     cerrarSesion() {
-      console.log("Sesión cerrada");
+      let token = localStorage.getItem('token');
+      axios
+        .delete(`${this.$apiRoute}/logout`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          methods.deleteProperties(this.$user);
+          alert(response.data.message);
+          this.$router.push('/');
+        })
+        .catch(error => {
+          if (error.status === 401)
+            alert("error al cerrar sesion.");
+          console.error("error al cerrar sesion", error);
+        });
     },
   },
+  mounted() {
+    this.userName = this.$user.name;
+  }
 };
 </script>
 
