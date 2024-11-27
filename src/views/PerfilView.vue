@@ -145,7 +145,7 @@ export default {
             this.$router.push("/");
           }
           else
-            console.error('Error al verificar el token:', error);
+            console.error('Error al realizar la peticion:', error);
         });
     },
     obtenerUsuarios() {
@@ -160,16 +160,16 @@ export default {
           this.usuarios = response.data.usuarios;
         })
         .catch(error => {
-          console.error('Error al verificar el token:', error);
+          console.error('Error al realizar la peticion:', error);
         });
     },
-    editarUsuario(usuario){
+    editarUsuario(usuario) {
       this.$auxiliar.name = usuario.name;
       this.$auxiliar.admin = usuario.admin;
       this.$auxiliar.id = usuario.id;
       this.$router.push('/editar-usuario')
     },
-    editarPerfil(){
+    editarPerfil() {
       this.$auxiliar.name = this.$user.name;
       this.$auxiliar.admin = this.$user.admin;
       this.$auxiliar.id = this.$user.id;
