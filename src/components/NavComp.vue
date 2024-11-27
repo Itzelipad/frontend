@@ -30,22 +30,22 @@
           <li>
             <!-- Inicio -->
             <router-link
-              :to="userRole === 'Administrador' ? '/inicio' : '/formulario'"
+              :to="userRole === true ? '/inicio' : '/formulario'"
               class="flex items-center p-3 rounded-lg hover:bg-transparent group option"
               :class="{
                 'text-[#163891]':
                   $route.path ===
-                  (userRole === 'Administrador' ? '/inicio' : '/formulario'),
+                  (userRole === true ? '/inicio' : '/formulario'),
                 'text-[#A3AED0]':
                   $route.path !==
-                  (userRole === 'Administrador' ? '/inicio' : '/formulario'),
+                  (userRole === true ? '/inicio' : '/formulario'),
               }"
               @click="closeSidebar"
             >
               <span
                 v-if="
                   $route.path ===
-                  (userRole === 'Administrador' ? '/inicio' : '/formulario')
+                  (userRole === true ? '/inicio' : '/formulario')
                 "
                 class="absolute -right-3 top-1/2 transform -translate-y-1/2 h-8 w-1 bg-[#163891] rounded-l-full"
               ></span>
@@ -58,15 +58,15 @@
           <li>
             <!-- Recepciones -->
             <router-link
-              :to="userRole === 'Administrador' ? '/recepciones' : '/recepcion'"
+              :to="userRole === true ? '/recepciones' : '/recepcion'"
               class="flex items-center p-3 rounded-lg hover:bg-transparent group option"
               active-class="text-[#163891]"
               :class="{
                 'text-[#163891]': $route.path.includes(
-                  userRole === 'Administrador' ? 'recepciones' : 'recepcion'
+                  userRole === true ? 'recepciones' : 'recepcion'
                 ),
                 'text-[#A3AED0]': !$route.path.includes(
-                  userRole === 'Administrador' ? 'recepciones' : 'recepcion'
+                  userRole === true ? 'recepciones' : 'recepcion'
                 ),
               }"
               @click="closeSidebar"
@@ -74,7 +74,7 @@
               <span
                 v-if="
                   $route.path.includes(
-                    userRole === 'Administrador' ? 'recepciones' : 'recepcion'
+                    userRole === true ? 'recepciones' : 'recepcion'
                   )
                 "
                 class="absolute -right-3 top-1/2 transform -translate-y-1/2 h-8 w-1 bg-[#163891] rounded-l-full"
@@ -85,7 +85,7 @@
               <span
                 class="flex-1 ms-3 whitespace-nowrap group-hover:text-[#163891] text-lg"
                 >{{
-                  userRole === "Administrador" ? "Recepciones" : "Estadísticas"
+                  userRole === true ? "Recepciones" : "Estadísticas"
                 }}</span
               >
             </router-link>
@@ -93,7 +93,7 @@
           <li>
             <!-- Doctores-->
             <router-link
-              v-if="userRole === 'Administrador'"
+              v-if="userRole === true"
               to="/doctores"
               class="flex items-center p-3 rounded-lg hover:bg-transparent group option"
               :class="{
@@ -115,7 +115,7 @@
           <li>
             <!-- Perfil -->
             <router-link
-              :to="userRole === 'Recepcionista' ? '/perfil-usuario' : '/perfil'"
+              :to="userRole === false ? '/perfil-usuario' : '/perfil'"
               class="flex items-center p-3 rounded-lg hover:bg-transparent group option"
               :class="{
                 'text-[#163891]': ['perfil', 'usuario', 'contrasena'].some(
@@ -152,7 +152,7 @@
 export default {
   data() {
     return {
-      userRole: "Administrador", //cambiar el rol a Recepcionista para visualizar su barra de navegacion
+      userRole: false,
       sidebarOpen: false,
     };
   },
@@ -166,6 +166,9 @@ export default {
     isActive(path) {
       return this.$route.path === path ? "text-[#163891]" : "text-[#A3AED0]";
     },
+  },
+  mounted(){
+    this.userRole = this.$user.admin;
   },
   computed: {
     menuIconColor() {

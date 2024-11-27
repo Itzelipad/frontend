@@ -12,6 +12,9 @@ export default {
   name: 'App',
   components: {
     NavComp 
+  },
+  mounted(){
+    this.$router.push("/");
   }
 }
 </script>
