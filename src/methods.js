@@ -18,5 +18,6 @@ export default {
         auxiliar.reception = null;
         auxiliar.vinculacion = null;
         auxiliar.edificio = null;
+        auxiliar.numero = null;
     }
 }
