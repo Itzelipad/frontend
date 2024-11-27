@@ -17,12 +17,14 @@
           <p class="text-[#163891] text-lg mb-8"> Completa los siguientes campos para registrar una nueva recepción.</p>
 
           <label class="text-[#163891] font-semibold mb-6 block text-lg">Número de recepción:</label>
-          <input type="text" class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none"/>
+          <input type="text" v-model="numero"
+            class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none" />
 
           <label class="text-[#163891] font-semibold mb-6 block text-lg">Edificio:</label>
-          <input type="text" class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none"/>
+          <input type="text" v-model="edificio"
+            class="bg-[#EBF0FD] text-[#163891] rounded-lg p-2 w-full mb-8 border-2 border-transparent focus:border-transparent focus:outline-none" />
 
-          <button class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-full">
+          <button @click="registrarRecepcion" class="bg-[#2B3674] text-white font-semibold py-2 px-4 rounded-lg w-full">
             Guardar
           </button>
         </div>
@@ -32,9 +34,37 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
-  data() { 
+  data() {
+    return {
+      numero: null,
+      edificio: null,
+    }
   },
+  methods: {
+    registrarRecepcion() {
+      let token = localStorage.getItem('token');
+      axios
+        .post(`${this.$apiRoute}/registrar-recepcion`,
+        {
+          numero: this.numero,
+          edificio: this.edificio,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          alert(response.data.message);
+          this.$router.go(-1);
+        })
+        .catch(error => {
+          alert(error.response.data.message);
+        });
+    }
+  }
 };
 </script>
 
