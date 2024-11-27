@@ -42,14 +42,14 @@
             <div class="text-[#163891] font-semibold text-1sm md:text-lg"> {{ doctor.nombre }} </div>
 
             <!-- Vinculacion (renta o no renta) -->
-            <div class="text-[#A3AED0] text-sm"> {{ doctor.renta ? "Renta" : "No renta" }} </div>
+            <div class="text-[#A3AED0] text-sm"> {{ doctor.vinculacion ? "Renta" : "No renta" }} </div>
           </div>
 
           <!-- Iconos -->
           <div class="flex items-center space-x-4">
             <!-- Botón de editar -->
             <button
-              @click="$router.push('/editar-doctor')"
+              @click="editarDoctor(doctor)"
               class="focus:outline-none"
             >
               <svg class="w-6 h-6 transition-colors duration-200"
@@ -83,19 +83,39 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: "DoctoresView",
   data() {
     return {
-      doctores: [
-        { id: "101", nombre: "Jessica Itzel Montoya Padilla", renta: false },
-        { id: "102", nombre: "Carlos Alberto Sánchez", renta: true },
-        { id: "103", nombre: "María Fernanda Torres", renta: false },
-        { id: "104", nombre: "Luis Fernando Gómez", renta: true },
-      ],
+      doctores: [],
       doctorSeleccionado: null, // Variable para almacenar el doctor seleccionado
     };
   },
+  methods:{
+    editarDoctor(doctor){
+      this.$auxiliar.id = doctor.id;
+      this.$auxiliar.name = doctor.nombre;
+      this.$auxiliar.vinculacion = doctor.vinculacion;
+      this.$auxiliar.recepcion = doctor.reception_id;
+      this.$router.push('/editar-doctor');
+    }
+  },
+  mounted(){
+    let token = localStorage.getItem('token');
+    axios
+      .get(`${this.$apiRoute}/mostrar-doctores`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        this.doctores = response.data.doctores;
+      })
+      .catch(error => {
+        console.error('Error al realizar la peticion:', error);
+      });
+  }
 };
 </script>
 
