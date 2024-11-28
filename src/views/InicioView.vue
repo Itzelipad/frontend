@@ -52,7 +52,7 @@
 
           <!-- Botón de flecha para redirigir a la vista de las estadisticas de la recepcion-->
           <button
-            @click="$router.push('/recepcion')"
+            @click="estadisticas(recepcion)"
             class="focus:outline-none"
           >
             <svg class="w-6 h-6 text-[#163891] transition-transform duration-200 hover:scale-110" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"  height="24" fill="none" viewBox="0 0 24 24">
@@ -66,6 +66,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import EstadisticasComp from "../components/EstadisticasComp.vue";
 import BarChart from "../components/BarChart.vue";
 import DoughnutChart from "../components/DoughnutChart.vue";
@@ -79,14 +80,33 @@ export default {
   },
   data() {
     return {
-      recepciones: [
-        { numero: 503, edificio: "A" },
-        { numero: 504, edificio: "B" },
-        { numero: 505, edificio: "C" },
-        { numero: 506, edificio: "D" },
-      ],
+      recepciones: [],
     };
   },
+  methods:{
+    estadisticas(recepcion) {
+      this.$auxiliar.numero = recepcion.numero;
+      this.$auxiliar.edificio = recepcion.edificio;
+      this.$auxiliar.id = recepcion.id;
+      console.log(recepcion.id);
+      this.$router.push('/recepcion');
+    }
+  },
+  mounted(){
+    let token = localStorage.getItem('token');
+    axios
+      .get(`${this.$apiRoute}/mostrar-recepciones`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        this.recepciones = response.data.recepciones;
+      })
+      .catch(error => {
+        console.error('Error al realizar la peticion:', error);
+      });
+  }
 };
 </script>
 

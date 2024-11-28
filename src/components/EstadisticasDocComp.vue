@@ -8,44 +8,37 @@
         <div v-if="selectedOption === 'Rango de fechas'" class="flex items-center space-x-4">
           <div class="bg-white rounded-2xl p-1 h-[35px] flex items-center space-x-2">
             <span class="ml-4 text-[#A3AED0] font-medium text-sm">Inicio:</span>
-            <input type="date" v-model="startDate" @change="updateRange" class="border border-transparent rounded-md p-1 text-sm text-[#163891] font-medium focus:outline-none"/>
+            <input type="date" v-model="startDate" @change="updateRange"
+              class="border border-transparent rounded-md p-1 text-sm text-[#163891] font-medium focus:outline-none" />
           </div>
 
           <div class="bg-white rounded-2xl p-1 h-[35px] flex items-center space-x-2">
             <span class="ml-4 text-[#A3AED0] font-medium text-sm">Fin:</span>
-            <input type="date" v-model="endDate" @change="updateRange" class="border border-transparent rounded-md p-1 text-sm text-[#163891] font-medium focus:outline-none"/>
+            <input type="date" v-model="endDate" @change="updateRange"
+              class="border border-transparent rounded-md p-1 text-sm text-[#163891] font-medium focus:outline-none" />
           </div>
         </div>
 
-        <button
-          @click="toggleOptions"
-          class="flex items-center justify-between rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium text-[#163891] focus:outline-none focus:ring-2 focus:ring-transparent focus:ring-offset-2"
-        >
+        <button @click="toggleOptions"
+          class="flex items-center justify-between rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium text-[#163891] focus:outline-none focus:ring-2 focus:ring-transparent focus:ring-offset-2">
           {{ selectedTimeLabel }}
-          <svg
-            class="ml-2 h-4 w-4 text-[#163891] transition-transform"
-            :class="{ 'rotate-180': isOpen }"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+          <svg class="ml-2 h-4 w-4 text-[#163891] transition-transform" :class="{ 'rotate-180': isOpen }" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
           </svg>
         </button>
 
-        <div v-if="isOpen" class="absolute right-0 mt-1 w-52 h-auto rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-auto z-20"
-        >
+        <div v-if="isOpen"
+          class="absolute right-0 mt-1 w-52 h-auto rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-auto z-20">
           <div class="py-1" role="menu" aria-orientation="vertical">
-            <button
-              v-for="(option, index) in options"
-              :key="index"
+            <button v-for="(option, index) in options" :key="index"
               class="block w-full px-4 py-2 text-sm text-[#163891] hover:bg-gray-100 text-left"
-              @click.prevent="selectOption(option)"
-            >
+              @click.prevent="selectOption(option)">
               {{ option }}
             </button>
-            <button
-              v-if="isLargeScreen"
+            <button v-if="isLargeScreen"
               class="block w-full px-4 py-2 text-sm text-[#163891] hover:bg-gray-100 text-left"
-              @click.prevent="selectOption('Rango de fechas')"
-            >
+              @click.prevent="selectOption('Rango de fechas')">
               Rango de fechas
             </button>
           </div>
@@ -69,25 +62,27 @@
       </thead>
 
       <tbody>
-        <tr
-          v-for="(doctor, index) in filteredDoctors"
-          :key="index"
-          class="text-center text-[#163891] cursor-pointer"
-          :class="{
+        <tr v-for="(informacion, index) in filteredDoctors" :key="index"
+          class="text-center text-[#163891] cursor-pointer" :class="{
             'hover:bg-gray-100': selectedDoctorIndex !== index, // Fondo gris claro al pasar el mouse
-          }"
-          @click="selectDoctor(index)"
-        >
-          <td class="py-2 break-words max-w-[300px] text-center pl-2">{{ doctor.nombre }}</td>
+          }" @click="selectDoctor(informacion.doctor)">
+          <td class="py-2 break-words max-w-[300px] text-center pl-2">{{ informacion.doctor.nombre }}</td>
           <!-- Ocultar estas columnas en pantallas pequeñas -->
-          <td class="hidden md:table-cell py-2">{{ doctor.vinculacion }}</td>
-          <td class="hidden md:table-cell py-2">{{ doctor.consulta }}</td>
-          <td class="hidden md:table-cell py-2">{{ doctor.revision }}</td>
-          <td class="hidden md:table-cell py-2">{{ doctor.ingreso }}</td>
-          <td class="hidden md:table-cell py-2">{{ doctor.espontaneo }}</td>
-          <td class="hidden md:table-cell py-2">{{ doctor.seguro }}</td>
-        
-          <td class="py-2 pr-2 w-[100px]">{{ formatTotal(calculateTotal(doctor)) }}</td>
+          <td class="hidden md:table-cell py-2">
+            <div v-if="informacion.doctor.vinculacion">
+              Renta
+            </div>
+            <div v-else>
+              No renta
+            </div>
+          </td>
+          <td class="hidden md:table-cell py-2">{{ informacion.casos[0] }}</td>
+          <td class="hidden md:table-cell py-2">{{ informacion.casos[1] }}</td>
+          <td class="hidden md:table-cell py-2">{{ informacion.casos[2] }}</td>
+          <td class="hidden md:table-cell py-2">{{ informacion.casos[3] }}</td>
+          <td class="hidden md:table-cell py-2">{{ informacion.casos[4] }}</td>
+
+          <td class="py-2 pr-2 w-[100px]">{{ informacion.total }}</td>
         </tr>
       </tbody>
     </table>
@@ -95,16 +90,17 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   data() {
     return {
       selectedDoctorIndex: null, // Índice del doctor seleccionado
       selectedTime: "Hoy", // Muestra "Hoy" por defecto
-      options: ["Hoy", "Esta semana", "Últimos 30 días", "Todo el tiempo"],
+      options: ["Hoy", "Esta semana", "Los últimos 30 días", "Todo el tiempo"],
       isOpen: false,
       selectedOption: "Hoy",
-      startDate: "",
-      endDate: "",
+      startDate: null,
+      endDate: null,
       doctorNames: [
         "Itzel Larraga Padilla",
         "Hector de Jesus Vega",
@@ -179,12 +175,10 @@ export default {
     },
   },
   methods: {
-    selectDoctor(index) {
-      this.selectedDoctorIndex = index; // Resalta la fila seleccionada
-      // Redirige a la ruta de estadísticas del doctor
-      this.$router.push({
-        path: '/estadisticas-doctor',
-      });
+    selectDoctor(doctor) {
+      this.$auxiliar.name = doctor.nombre;
+      this.$auxiliar.id = doctor.id;
+      this.$router.push('/estadisticas-doctor');
     },
     toggleOptions() {
       this.isOpen = !this.isOpen;
@@ -192,10 +186,16 @@ export default {
     selectOption(option) {
       this.selectedOption = option;
       this.isOpen = false;
-      this.fetchData(); // Actualiza los datos cuando selecciona una opción
+      if (option !== "Rango de fechas") {
+        this.doctoresStats();
+      }
     },
     updateRange() {
-      this.fetchData();
+      if (this.startDate && this.endDate) {
+        console.log(this.startDate);
+        console.log(this.endDate);
+        this.doctoresStats();
+      }
     },
     fetchData() {
       this.filteredDoctors = this.doctorNames.map((name, index) => ({
@@ -220,9 +220,31 @@ export default {
     formatTotal(value) {
       return value >= 1000000 ? `${(value / 1000000).toFixed(1)} M` : value;
     },
+    doctoresStats() {
+      let token = localStorage.getItem('token');
+      axios
+        .post(`${this.$apiRoute}/estadisticas-doctor-tabla/${this.$auxiliar.id}`,
+          {
+            opciones: this.selectedOption,
+            fecha_inicio: this.startDate,
+            fecha_fin: this.endDate
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          }
+        )
+        .then(response => {
+          this.filteredDoctors = response.data.informacion;
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    }
   },
   mounted() {
-    this.fetchData(); // Cargar datos iniciales al montar el componente
+    this.doctoresStats();
   },
 };
 </script>

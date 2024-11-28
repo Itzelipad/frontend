@@ -67,7 +67,7 @@ export default {
   },
   computed: {
     receptionNumber() {
-      return this.receptionNumbers[0]; 
+      return this.$auxiliar.numero; 
     }
   },
   methods: {

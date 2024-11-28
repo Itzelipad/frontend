@@ -18,7 +18,7 @@ app.config.globalProperties.$auxiliar = reactive({
     reception: null,
     vinculacion: null,
     edificio: null,
-    numero:null
+    numero: null
 });
-app.config.globalProperties.$apiRoute = "http://127.0.0.1:8000/api";
+app.config.globalProperties.$apiRoute = "http://192.168.1.84:8000/api";
 app.mount('#app')

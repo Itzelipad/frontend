@@ -13,8 +13,10 @@
 
         <!-- Botón Descargar -->
         <button class="flex items-center text-[#163891] px-4 focus:outline-none mr-14 hidden md:flex">
-          <svg class="w-6 h-6 text-[#163891] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+          <svg class="w-6 h-6 text-[#163891] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4" />
           </svg>
           <span class="font-semibold">Descargar</span>
         </button>
@@ -26,20 +28,20 @@
 
         <!-- Gráfica de barras -->
         <div class="ml-0 md:ml-11">
-          <BarChart
-            :chartLabels="['C', 'R', 'I', 'E', 'S']"
-            :chartDataValues="[200, 100, 90, 80, 70]"
-          />
+          <BarChart :chartLabels="['C', 'R', 'I', 'E', 'S']" :chartDataValues="stats" />
         </div>
 
         <!-- Gráfica de anillo -->
-        <div class="mt-4 md:mt-0 md:ml-10"> <DoughnutChart /></div>
+        <div class="mt-4 md:mt-0 md:ml-10">
+          <DoughnutChart />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 import EstadisticasComp from "../components/EstadisticasComp.vue";
 import BarChart from "../components/BarChart.vue";
 import DoughnutChart from "../components/DoughnutChart.vue";
@@ -55,8 +57,35 @@ export default {
     return {
       // Nombre del doctor
       doctorName: 'Juan Pérez',
+      stats: [200, 100, 90, 80, 70]
     };
   },
+  methods: {
+    getStats() {
+      let token = localStorage.getItem('token');
+      axios
+        .post(`${this.$apiRoute}/estadisticas-doctor-graphic/${this.$auxiliar.id}`,
+          {
+            opciones: 'Todo el tiempo',
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          }
+        )
+        .then(response => {
+          this.stats = response.data.casos;
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    }
+  },
+  mounted() {
+    this.doctorName = this.$auxiliar.name;
+    this.getStats();
+  }
 };
 </script>
 

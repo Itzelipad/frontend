@@ -55,7 +55,7 @@
             </button>
 
             <!-- Botón de flecha para redirigir a otra recepcion -->
-            <button @click="$router.push('/recepcion')" class="focus:outline-none">
+            <button @click="estadisticas(recepcion)" class="focus:outline-none">
               <svg class="w-6 h-6 text-[#163891] transition-transform duration-200 hover:scale-110" aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
@@ -85,6 +85,12 @@ export default {
       this.$auxiliar.edificio = recepcion.edificio;
       this.$auxiliar.id = recepcion.id;
       this.$router.push('/editar-recepcion');
+    },
+    estadisticas(recepcion) {
+      this.$auxiliar.numero = recepcion.numero;
+      this.$auxiliar.edificio = recepcion.edificio;
+      this.$auxiliar.id = recepcion.id;
+      this.$router.push('/recepcion');
     }
   },
   mounted() {

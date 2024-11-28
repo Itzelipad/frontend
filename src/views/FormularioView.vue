@@ -99,11 +99,7 @@ export default {
         doctor: '',
         id_doctor: null,
       },
-      doctores: [
-        { id: 1, nombre: "Dr. Pérez" },
-        { id: 2, nombre: "Dra. Gómez" },
-        { id: 3, nombre: "Dr. López" },
-      ],
+      doctores: [],
       opcionesDesglose: ['Consulta', 'Revisión', 'Ingreso', 'Espontáneo', 'Seguro'],
       isDoctorDropdownOpen: false,
       isDesgloseDropdownOpen: false,

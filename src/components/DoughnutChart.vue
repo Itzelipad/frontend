@@ -3,28 +3,21 @@
     <!-- Selección de tiempo alineada a la derecha -->
     <div class="absolute top-4 right-4 flex items-center z-30">
       <div class="relative">
-        <button
-          @click="toggleOptions"
-          class="flex items-center justify-between w-full rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium text-[#163891] focus:outline-none focus:ring-2 focus:ring-transparent focus:ring-offset-2"
-        >
+        <button @click="toggleOptions"
+          class="flex items-center justify-between w-full rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium text-[#163891] focus:outline-none focus:ring-2 focus:ring-transparent focus:ring-offset-2">
           {{ selectedOption }}
-          <svg
-            class="ml-2 h-4 w-4 text-[#163891] transition-transform"
-            :class="{ 'rotate-180': isOpen }"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"
-          >
+          <svg class="ml-2 h-4 w-4 text-[#163891] transition-transform" :class="{ 'rotate-180': isOpen }" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
           </svg>
         </button>
 
-        <div v-if="isOpen" class="absolute right-0 mt-2 w-52 h-auto rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-auto z-20">
+        <div v-if="isOpen"
+          class="absolute right-0 mt-2 w-52 h-auto rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-auto z-20">
           <div class="py-1" role="menu" aria-orientation="vertical">
-            <button
-              v-for="(option, index) in options"
-              :key="index"
+            <button v-for="(option, index) in options" :key="index"
               class="block w-full px-4 py-2 text-sm text-[#163891] hover:bg-gray-100 text-left"
-              @click.prevent="selectOption(option)"
-            >
+              @click.prevent="selectOption(option)">
               {{ option }}
             </button>
           </div>
@@ -34,11 +27,7 @@
 
     <!-- Contenedor del gráfico de anillo -->
     <div class="relative flex justify-center items-center mt-11 md:mt-10">
-      <Doughnut 
-        class="w-[180px] md:h-[180px] z-10" 
-        :options="chartOptions" 
-        :data="chartData" 
-      />
+      <Doughnut class="w-[180px] md:h-[180px] z-10" :options="chartOptions" :data="chartData" />
       <div class="absolute flex flex-col items-center justify-center z-0">
         <span class="text-[#163891] text-3xl font-bold mb-2">{{ formattedTotalPatients }}</span>
         <span class="text-[#A3AED0] text-sm">Total Pacientes</span>
@@ -74,6 +63,7 @@
 <script>
 import { Doughnut } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import axios from 'axios';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
@@ -85,7 +75,7 @@ export default {
       selectedOption: 'Todo el tiempo',
       isOpen: false,
       options: ['Hoy', 'Esta semana', 'Los últimos 30 días', 'Todo el tiempo'],
-      chartData: this.getChartData('Todo el tiempo'),
+      chartData: this.getChartData([]), // Inicialmente vacío
       chartOptions: {
         responsive: true,
         maintainAspectRatio: false,
@@ -134,20 +124,13 @@ export default {
       this.isOpen = false;
       this.updateChartData();
     },
-    getChartData(timeFrame) {
-      const dataOptions = {
-        'Hoy': [30, 50, 20, 10, 15],
-        'Esta semana': [100, 150, 70, 50, 80],
-        'Los últimos 30 días': [800, 1200, 600, 400, 500],
-        'Todo el tiempo': [2000, 3000, 1500, 1000, 1300],
-      };
-
+    getChartData(data) {
       return {
         labels: ['Consultas', 'Revisiones', 'Ingreso', 'Espontáneo', 'Seguro'],
         datasets: [
           {
             label: 'Pacientes',
-            data: dataOptions[timeFrame] || [0, 0, 0, 0, 0],
+            data: data,
             backgroundColor: [
               '#A3E4D7', // Consultas
               'rgba(156,162,239,0.9)', // Revisiones
@@ -162,8 +145,36 @@ export default {
       };
     },
     updateChartData() {
-      this.chartData = this.getChartData(this.selectedOption);
+      let ruta = this.$route.path;
+      let peticion;
+      if (ruta === '/inicio') {
+        peticion = `${this.$apiRoute}/estadisticas-generales-graphic`;
+      } else if (ruta === '/recepcion') {
+        peticion = `${this.$apiRoute}/estadisticas-recepcion-graphic/${this.$auxiliar.id}`;
+      } else if (ruta === '/estadisticas-doctor') {
+        peticion = `${this.$apiRoute}/estadisticas-doctor-graphic/${this.$auxiliar.id}`;
+      }
+      let token = localStorage.getItem('token');
+      axios
+        .post(peticion, {
+          opciones: this.selectedOption,
+        },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          }
+        )
+        .then(response => {
+          this.chartData = this.getChartData(response.data.casos); // Actualiza los datos del gráfico
+        })
+        .catch(error => {
+          console.error('Error al realizar la petición:', error);
+        });
     },
+  },
+  mounted() {
+    this.updateChartData(); // Cargar datos iniciales
   },
 };
 </script>
@@ -172,6 +183,7 @@ export default {
 .anillo {
   height: 300px;
 }
+
 .body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
