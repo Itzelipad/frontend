@@ -158,6 +158,7 @@ export default {
     },
     selectOption(option) {
       this.selectedOption = option;
+      this.$auxiliar.tiempo = option;
       this.isOpen = false;
       if (option !== "Rango de fechas") {
         this.getStats();
@@ -168,6 +169,8 @@ export default {
     },
     updateRange() {
       if (this.startDate && this.endDate) {
+        this.$auxiliar.fecha_inicio = this.startDate;
+        this.$auxiliar.fecha_fin = this.endDate;
         this.getStats();
       }
     },

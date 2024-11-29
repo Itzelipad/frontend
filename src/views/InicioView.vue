@@ -9,9 +9,12 @@
         <h1 class="text-2xl md:text-3xl font-semibold ml-0 md:ml-12" style="color: #163891"> Reporte General</h1>
 
         <!-- Botón Descargar -->
-        <button class="flex items-center text-[#163891] px-4 focus:outline-none mr-14 hidden md:flex">
-          <svg class="w-6 h-6 text-[#163891] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" >
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"  stroke-width="2"  d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+        <button @click="exportToExcel"
+          class="flex items-center text-[#163891] px-4 focus:outline-none mr-14 hidden md:flex">
+          <svg class="w-6 h-6 text-[#163891] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+            height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4" />
           </svg>
           <span class="font-semibold">Descargar</span>
         </button>
@@ -23,14 +26,14 @@
       <div class="mt-4 flex flex-col md:flex-row">
         <!-- Gráfica de barras -->
         <div class="ml-0 md:ml-11">
-          <BarChart
-            :chartLabels="['503', '563', '854', '469', '756', '200']"
-            :chartDataValues="[100, 80, 60, 43, 88, 36]"
-          />
+          <BarChart :chartLabels="['503', '563', '854', '469', '756', '200']"
+            :chartDataValues="[100, 80, 60, 43, 88, 36]" />
         </div>
 
         <!-- Gráfica de anillo -->
-        <div class="mt-4 md:mt-0 md:ml-10"><DoughnutChart /></div>
+        <div class="mt-4 md:mt-0 md:ml-10">
+          <DoughnutChart />
+        </div>
       </div>
 
       <!-- Lista de recepciones -->
@@ -38,12 +41,9 @@
         <div class="flex justify-between items-center mt-4 md:mt-3 mb-4">
           <h1 class="text-2xl md:text-2xl font-semibold ml-4 md:ml-4" style="color: #163891"> Recepciones</h1>
         </div>
-        <div
-          v-for="(recepcion, index) in recepciones"
-          :key="index"
+        <div v-for="(recepcion, index) in recepciones" :key="index"
           class="bg-white p-4 rounded-xl mb-4 flex justify-between items-center"
-          style="box-shadow: 0px 4px 10px rgba(112, 144, 176, 0.12)"
-        >
+          style="box-shadow: 0px 4px 10px rgba(112, 144, 176, 0.12)">
           <!-- Texto de la recepción -->
           <div>
             <div class="text-[#163891] font-semibold text-lg"> Recepción {{ recepcion.numero }}</div>
@@ -51,12 +51,11 @@
           </div>
 
           <!-- Botón de flecha para redirigir a la vista de las estadisticas de la recepcion-->
-          <button
-            @click="estadisticas(recepcion)"
-            class="focus:outline-none"
-          >
-            <svg class="w-6 h-6 text-[#163891] transition-transform duration-200 hover:scale-110" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"  height="24" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor"  stroke-linecap="round"  stroke-linejoin="round"  stroke-width="3"  d="m9 5 7 7-7 7"/>
+          <button @click="estadisticas(recepcion)" class="focus:outline-none">
+            <svg class="w-6 h-6 text-[#163891] transition-transform duration-200 hover:scale-110" aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                d="m9 5 7 7-7 7" />
             </svg>
           </button>
         </div>
@@ -70,6 +69,7 @@ import axios from "axios";
 import EstadisticasComp from "../components/EstadisticasComp.vue";
 import BarChart from "../components/BarChart.vue";
 import DoughnutChart from "../components/DoughnutChart.vue";
+import * as XLSX from 'xlsx';
 
 export default {
   name: "InicioView",
@@ -83,16 +83,56 @@ export default {
       recepciones: [],
     };
   },
-  methods:{
+  methods: {
     estadisticas(recepcion) {
       this.$auxiliar.numero = recepcion.numero;
       this.$auxiliar.edificio = recepcion.edificio;
       this.$auxiliar.id = recepcion.id;
       console.log(recepcion.id);
       this.$router.push('/recepcion');
-    }
+    },
+    exportToExcel() {
+      let token = localStorage.getItem('token');
+      let opcionTiempo = [this.$auxiliar.tiempo];
+      axios
+        .post(`${this.$apiRoute}/estadisticas-generales-tabla`,
+          {
+            opciones: this.$auxiliar.tiempo,
+            fecha_inicio: this.$auxiliar.fecha_inicio,
+            fecha_fin: this.$auxiliar.fecha_fin
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          })
+        .then(response => {
+          this.stats = response.data.informacion;
+          if (this.$auxiliar.tiempo === 'Rango de fechas') {
+            opcionTiempo = [this.$auxiliar.tiempo, this.$auxiliar.fecha_inicio, this.$auxiliar.fecha_fin];
+          }
+          const data = [
+            opcionTiempo,
+            ["Fecha", "Consulta", "Revisión", "Ingreso", "Espontáneo", "Seguro", "Total"],
+            ...this.stats.map(info => [info.fecha, info.Consulta, info.Revision, info.Ingreso, info.Espontaneo, info.Seguro, info.Total])
+          ];
+          const worksheet = XLSX.utils.aoa_to_sheet(data);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Estadísticas");
+          let formattedDate;
+          if(this.$auxiliar.tiempo === 'Hoy'){
+             formattedDate = `${response.data.fecha_inicio}`
+          }else{
+            formattedDate = `${response.data.fecha_inicio} - ${response.data.fecha_fin}`;
+          }
+          XLSX.writeFile(workbook, `estadisticas ${formattedDate}.xlsx`);
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    },
   },
-  mounted(){
+  mounted() {
     let token = localStorage.getItem('token');
     axios
       .get(`${this.$apiRoute}/mostrar-recepciones`, {
@@ -109,4 +149,3 @@ export default {
   }
 };
 </script>
-

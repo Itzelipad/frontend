@@ -9,7 +9,8 @@
         <h1 class="text-2xl md:text-3xl font-semibold ml-0 md:ml-12" style="color: #163891">Recepción {{ receptionNumber
           }}</h1>
         <!-- Botón Descargar -->
-        <button class="flex items-center text-[#163891] px-4 focus:outline-none mr-14 hidden md:flex">
+        <button @click="exportToExcel"
+          class="flex items-center text-[#163891] px-4 focus:outline-none mr-14 hidden md:flex">
           <svg class="w-6 h-6 text-[#163891] mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
             height="24" fill="none" viewBox="0 0 24 24">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -46,6 +47,8 @@ import EstadisticasComp from '../components/EstadisticasComp.vue';
 import BarChart from '../components/BarChart.vue';
 import DoughnutChart from '../components/DoughnutChart.vue';
 import EstadisticasDocComp from '../components/EstadisticasDocComp.vue';
+import * as XLSX from 'xlsx';
+import axios from 'axios';
 
 export default {
   name: "InicioView",
@@ -57,6 +60,7 @@ export default {
   },
   data() {
     return {
+      stats: [],
       chartDataValues: [50, 30, 20, 40, 60], // Datos iniciales de la gráfica
       timeData: {
         Hoy: [10, 15, 20, 25, 30],
@@ -76,10 +80,66 @@ export default {
     updateChartData(selectedOption) {
       this.chartDataValues = this.timeData[selectedOption];
     },
+    exportToExcel() {
+      let token = localStorage.getItem('token');
+      let opcionTiempo = [this.$auxiliar.tiempo];
+      axios
+        .post(`${this.$apiRoute}/estadisticas-doctor-tabla/${this.$auxiliar.id}`,
+          {
+            opciones: this.$auxiliar.tiempo,
+            fecha_inicio: this.$auxiliar.fecha_inicio,
+            fecha_fin: this.$auxiliar.fecha_fin
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          })
+        .then(response => {
+          this.stats = response.data.informacion;
+          if (this.$auxiliar.tiempo === 'Rango de fechas') {
+            opcionTiempo = [this.$auxiliar.tiempo, this.$auxiliar.fecha_inicio, this.$auxiliar.fecha_fin];
+          }
+          const data = [
+            opcionTiempo,
+            ["Fecha", "Consulta", "Revisión", "Ingreso", "Espontáneo", "Seguro", "Total"],
+            ...this.stats.map(info => [info.fecha, info.Consulta, info.Revision, info.Ingreso, info.Espontaneo, info.Seguro, info.Total])
+          ];
+          const worksheet = XLSX.utils.aoa_to_sheet(data);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Estadísticas");
+          let formattedDate;
+          if(this.$auxiliar.tiempo === 'Hoy'){
+             formattedDate = `${response.data.fecha_inicio}`
+          }else{
+            formattedDate = `${response.data.fecha_inicio} - ${response.data.fecha_fin}`;
+          }
+          XLSX.writeFile(workbook, `estadisticas ${formattedDate}.xlsx`);
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    },
   },
   beforeCreate() {
-    if (this.$user.reception !== null)
-        this.$auxiliar.id = this.$user.reception;
+    if (this.$user.reception !== null) {
+      this.$auxiliar.id = this.$user.reception;
+      let token = localStorage.getItem('token');
+      axios
+        .get(`${this.$apiRoute}/mostrar-recepcion/${this.$auxiliar.id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          })
+        .then(response => {
+          console.log(response.data.informacion);
+          this.$auxiliar.numero = response.data.recepcion.numero;
+        })
+        .catch(error => {
+          console.error('Error al realizar la peticion:', error);
+        });
+    }
   }
 };
 </script>
